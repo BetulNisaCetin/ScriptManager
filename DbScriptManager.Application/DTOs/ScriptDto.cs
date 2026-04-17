@@ -13,6 +13,7 @@ namespace DbScriptManager.Application.DTOs
         public string ScriptPath { get; set; } = string.Empty;
         public string RollbackPath { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
+        public string DatabaseName {get; set;}
         public string VersionName { get; set; } = string.Empty;
         public bool IsExecuted { get; set; } 
         public DateTime? ExecutedAt { get; set; }

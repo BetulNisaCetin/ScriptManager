@@ -29,11 +29,50 @@ public class ScriptController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+public async Task<IActionResult> Index(
+    string? searchTerm,
+    int? versionId,
+    int? databaseConfigId,
+    string? scriptType,
+    DateTime? dateFrom,
+    DateTime? dateTo)
+{
+    var filter = new ScriptFilterDto
     {
-        var scripts = await _scriptService.GetAllScripts();
-        return View(scripts);
-    }
+        SearchTerm       = searchTerm,
+        VersionId        = versionId,
+        DatabaseConfigId = databaseConfigId,
+        ScriptType       = scriptType,
+        DateFrom         = dateFrom,
+        DateTo           = dateTo
+    };
+
+    var scripts = await _scriptService.GetFilteredScripts(filter);
+
+    // Dropdown'lar için
+    var versions = await _versionService.GetAllVersions();
+    ViewBag.Versions = new SelectList(versions, "Id", "VersionName", versionId);
+
+    var dbConfigs = await _dbConfigRepository.GetAllAsync();
+    ViewBag.DatabaseConfigs = new SelectList(dbConfigs, "Id", "Name", databaseConfigId);
+
+    // Aktif filtre sayısı (badge için)
+    ViewBag.ActiveFilterCount = new[] {
+        searchTerm, scriptType,
+        versionId?.ToString(), databaseConfigId?.ToString(),
+        dateFrom?.ToString(), dateTo?.ToString()
+    }.Count(x => !string.IsNullOrEmpty(x));
+
+    // Mevcut filtre değerlerini view'a taşı
+    ViewBag.SearchTerm       = searchTerm;
+    ViewBag.SelectedVersion  = versionId;
+    ViewBag.SelectedDb       = databaseConfigId;
+    ViewBag.SelectedType     = scriptType;
+    ViewBag.DateFrom         = dateFrom?.ToString("yyyy-MM-dd");
+    ViewBag.DateTo           = dateTo?.ToString("yyyy-MM-dd");
+
+    return View(scripts);
+}
 
     [HttpGet]
     public async Task<IActionResult> Create(int? versionId)

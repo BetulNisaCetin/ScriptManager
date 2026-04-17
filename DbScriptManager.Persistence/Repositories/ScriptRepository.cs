@@ -15,13 +15,19 @@ namespace DbScriptManager.Persistence.Repositories
         }
         public async Task<List<DbScript>> GetAllAsync()
         {
-            return await _context.Scripts.Include(s => s.Version).ToListAsync();
+            return await _context.Scripts
+            .Include(s => s.Version)
+            .Include(s => s.DatabaseConfig)   // YENİ
+            .ToListAsync();
         }
 
         public async Task<DbScript> GetByIdAsync(int id)
         {
-            return await _context.Scripts.Include(s => s.Version)
-                 .FirstOrDefaultAsync(s => s.Id == id) ?? throw new Exception("Script bulunamadı");
+            return await _context.Scripts
+        .Include(s => s.Version)
+        .Include(s => s.DatabaseConfig)   // YENİ
+        .FirstOrDefaultAsync(s => s.Id == id)
+        ?? throw new Exception("Script bulunamadı");
         }
 
         public async Task AddAsync(DbScript script)
@@ -43,12 +49,14 @@ namespace DbScriptManager.Persistence.Repositories
 
 
         public async Task<List<DbScript>> GetByVersionIdAsync(int versionId)
-        {
-            return await _context.Scripts
-                .Include(s => s.Version)
-                .Where(s => s.VersionId == versionId).
-                OrderByDescending(s => s.CreatedDate).ToListAsync();
-        }
+    {
+        return await _context.Scripts
+        .Include(s => s.Version)
+        .Include(s => s.DatabaseConfig)   // YENİ
+        .Where(s => s.VersionId == versionId)
+        .OrderByDescending(s => s.CreatedDate)
+        .ToListAsync();
+    }
 
         public async Task UpdateAsync(DbScript script)
         {

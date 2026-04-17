@@ -40,6 +40,7 @@ namespace DbScriptManager.Application.Services
                 RollbackPath = s.RollbackPath,
                 CreatedDate = s.CreatedDate,
                 VersionName = s.Version?.VersionName?? "no version",
+                DatabaseName    = s.DatabaseConfig?.Name ?? string.Empty,
                 IsExecuted = s.IsExecuted,
                 ExecutedAt = s.ExecutedAt,
                 IsSuccess = s.IsSuccess,
@@ -211,6 +212,49 @@ namespace DbScriptManager.Application.Services
 
             };
         }
+        public async Task<List<ScriptDto>> GetFilteredScripts(ScriptFilterDto filter)
+{
+    var scripts = await _repository.GetAllAsync();
+
+    if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        scripts = scripts.Where(s =>
+            s.ScriptName.Contains(filter.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+            s.DeveloperName.Contains(filter.SearchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    if (filter.VersionId.HasValue)
+        scripts = scripts.Where(s => s.VersionId == filter.VersionId).ToList();
+
+    if (filter.DatabaseConfigId.HasValue)
+        scripts = scripts.Where(s => s.DatabaseConfigId == filter.DatabaseConfigId).ToList();
+
+    if (!string.IsNullOrWhiteSpace(filter.ScriptType))
+        scripts = scripts.Where(s => s.ScriptType == filter.ScriptType).ToList();
+
+    if (filter.DateFrom.HasValue)
+        scripts = scripts.Where(s => s.CreatedDate >= filter.DateFrom.Value).ToList();
+
+    if (filter.DateTo.HasValue)
+        scripts = scripts.Where(s => s.CreatedDate <= filter.DateTo.Value.AddDays(1)).ToList();
+
+    return scripts.Select(s => new ScriptDto
+    {
+        Id              = s.Id,
+        ScriptName      = s.ScriptName,
+        ScriptPath      = s.ScriptPath,
+        RollbackPath    = s.RollbackPath,
+        CreatedDate     = s.CreatedDate,
+        VersionName     = s.Version?.VersionName ?? "no version",
+        DatabaseName    = s.DatabaseConfig?.Name ?? string.Empty,
+        IsExecuted      = s.IsExecuted,
+        ExecutedAt      = s.ExecutedAt,
+        IsSuccess       = s.IsSuccess,
+        ErrorMessagge   = s.ErrorMessage,
+        DeveloperName   = s.DeveloperName,
+        CreatedByUserId = s.CreatedByUserId,
+        ScriptType      = s.ScriptType ?? "Script",
+    }).ToList();
+}
 
         public async Task<ScriptDto?> GetById(int id)
         {

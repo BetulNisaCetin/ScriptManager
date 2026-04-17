@@ -257,8 +257,8 @@ body {
     z-index: 50;
 }
 
-.topbar-title {
-    font-size: 0.9375rem;
+{
+    font-size: 1.375rem;
     font-weight: 600;
     color: var(--text-primary);
 }
