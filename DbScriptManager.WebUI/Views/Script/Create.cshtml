@@ -1,0 +1,259 @@
+@model DbScriptManager.Application.DTOs.CreateScriptDto
+
+@{
+    ViewData["Title"] = "Yeni Script";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">Yeni Script Oluştur</h1>
+        <p class="page-header-subtitle">SQL script ve rollback kodunu tanımlayın</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Geri Dön
+    </a>
+</div>
+
+@*<div asp-validation-summary="All" class="validation-summary-errors"></div>*@
+
+<form asp-action="Create" method="post">
+
+    <!-- Script Tipi Picker -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <span class="card-header-title">
+                <i class="bi bi-collection me-2" style="color: var(--accent);"></i>
+                Script Tipi
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="script-type-picker">
+                <label class="type-option" id="type-cache">
+                    <input type="radio" name="ScriptType" value="Cache"
+                           @(Model.ScriptType == "Cache" ? "checked" : "") />
+                    <div class="type-option-inner">
+                        <div class="type-icon" style="background: rgba(239,68,68,0.1);">
+                            <i class="bi bi-lightning-charge-fill" style="color:#ef4444;"></i>
+                        </div>
+                        <div class="type-label">Cache</div>
+                        <div class="type-desc">Cache temizleme ve invalidation scriptleri</div>
+                    </div>
+                </label>
+
+                <label class="type-option" id="type-script">
+                    <input type="radio" name="ScriptType" value="Script"
+                           @(Model.ScriptType == "Script" || Model.ScriptType == null ? "checked" : "") />
+                    <div class="type-option-inner">
+                        <div class="type-icon" style="background: rgba(99,102,241,0.1);">
+                            <i class="bi bi-file-earmark-code" style="color:#6366f1;"></i>
+                        </div>
+                        <div class="type-label">Script</div>
+                        <div class="type-desc">DDL/DML veritabanı değişiklik scriptleri</div>
+                    </div>
+                </label>
+
+                <label class="type-option" id="type-rollback">
+                    <input type="radio" name="ScriptType" value="Rollback"
+                           @(Model.ScriptType == "Rollback" ? "checked" : "") />
+                    <div class="type-option-inner">
+                        <div class="type-icon" style="background: rgba(245,158,11,0.1);">
+                            <i class="bi bi-arrow-counterclockwise" style="color:#f59e0b;"></i>
+                        </div>
+                        <div class="type-label">Rollback</div>
+                        <div class="type-desc">Geri alma ve düzeltme scriptleri</div>
+                    </div>
+                </label>
+            </div>
+            <span asp-validation-for="ScriptType" class="field-validation-error"></span>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Sol kolon -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="bi bi-file-earmark-code me-2" style="color: var(--accent);"></i>
+                        Script İçeriği
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="ScriptName" class="form-label">Script Adı</label>
+                        <input asp-for="ScriptName" class="form-control"
+                               placeholder="Örn: add_column_users_email" />
+                        <span asp-validation-for="ScriptName" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ScriptContent" class="form-label">SQL Script</label>
+                        <textarea asp-for="ScriptContent" class="form-control textarea-code" rows="10"
+                                  placeholder="-- SQL kodunuzu buraya yazın&#10;ALTER TABLE users ADD COLUMN email VARCHAR(255);"></textarea>
+                        <span asp-validation-for="ScriptContent" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label asp-for="RollbackScript" class="form-label">
+                            Rollback SQL
+                            <span style="font-weight:400; color: var(--text-muted);">(geri alma)</span>
+                        </label>
+                        <textarea asp-for="RollbackScript" class="form-control textarea-code" rows="7"
+                                  placeholder="-- Geri alma kodunuzu buraya yazın&#10;ALTER TABLE users DROP COLUMN email;"></textarea>
+                        <span asp-validation-for="RollbackScript" class="field-validation-error"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ kolon -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="bi bi-gear me-2" style="color: var(--accent);"></i>
+                        Ayarlar
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="VersionId" class="form-label">Versiyon</label>
+                        <select asp-for="VersionId" asp-items="ViewBag.Versions" class="form-control form-select">
+                            <option value="">— Versiyon seçin —</option>
+                        </select>
+                        <span asp-validation-for="VersionId" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label asp-for="DeveloperName" class="form-label">Developer Adı</label>
+                        <input asp-for="DeveloperName" class="form-control"
+                               placeholder="Adınızı girin" />
+                        <span asp-validation-for="DeveloperName" class="field-validation-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Klasör önizleme -->
+            <div class="card mb-3" id="pathPreviewCard">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="bi bi-folder2-open me-2" style="color: var(--accent);"></i>
+                        Kayıt Yolu
+                    </span>
+                </div>
+                <div class="card-body" style="padding: 0.875rem 1rem;">
+                    <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); line-height:1.8;">
+                        <span style="color: var(--text-muted);">📁 VersionAdı /</span><br>
+                        <span style="color: var(--text-muted); padding-left:1rem;">📁 </span><span id="previewType" style="color: var(--accent); font-weight:600;">Script</span><br>
+                        <span style="color: var(--text-muted); padding-left:2rem;">📄 </span><span id="previewName">scriptAdı</span><span style="color: var(--text-muted)">.txt</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.625rem;">
+                <button type="submit" class="btn btn-primary" style="justify-content:center;">
+                    <i class="bi bi-check-lg"></i>
+                    Script Oluştur
+                </button>
+                <a asp-action="Index" class="btn btn-secondary" style="justify-content:center;">
+                    İptal
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+.script-type-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.type-option {
+    cursor: pointer;
+    position: relative;
+}
+
+.type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.type-option-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: white;
+    transition: all 0.15s ease;
+    gap: 0.5rem;
+}
+
+.type-option:hover .type-option-inner {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.03);
+}
+
+.type-option input[type="radio"]:checked + .type-option-inner {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.06);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+.type-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+}
+
+.type-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.type-desc {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+@@media (max-width: 576px) {
+    .script-type-picker {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Kayıt yolu önizleme
+        const typeRadios = document.querySelectorAll('input[name="ScriptType"]');
+        const nameInput  = document.getElementById('ScriptName');
+        const previewType = document.getElementById('previewType');
+        const previewName = document.getElementById('previewName');
+
+        function updatePreview() {
+            const selectedType = document.querySelector('input[name="ScriptType"]:checked')?.value || 'Script';
+            const name = nameInput?.value?.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'scriptAdı';
+            previewType.textContent = selectedType;
+            previewName.textContent = name;
+        }
+
+        typeRadios.forEach(r => r.addEventListener('change', updatePreview));
+        nameInput?.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+}

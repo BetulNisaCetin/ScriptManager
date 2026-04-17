@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">Hoş Geldiniz</h1>
+        <p class="page-header-subtitle">DB Script Manager — Veritabanı scriptlerinizi yönetin</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-icon" style="background: rgba(99,102,241,0.1);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                </svg>
+            </div>
+            <div class="stat-card-label">Scriptler</div>
+            <div style="font-size:0.8125rem; color: var(--text-secondary); margin-top:0.5rem;">
+                SQL scriptlerinizi oluşturun, yönetin ve takip edin.
+            </div>
+            <div style="margin-top:1rem;">
+                <a asp-controller="Script" asp-action="Index" class="btn btn-primary btn-sm">
+                    <i class="bi bi-arrow-right"></i>
+                    Script Listesi
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: rgba(16,185,129,0.1);">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                        <polyline points="2 17 12 22 22 17"/>
+                        <polyline points="2 12 12 17 22 12"/>
+                    </svg>
+                </div>
+                <div class="stat-card-label">Versiyonlar</div>
+                <div style="font-size:0.8125rem; color: var(--text-secondary); margin-top:0.5rem;">
+                    Database release versiyonlarını oluşturun ve yönetin.
+                </div>
+                <div style="margin-top:1rem;">
+                    <a asp-controller="Version" asp-action="Index" class="btn btn-sm btn-secondary">
+                        <i class="bi bi-arrow-right"></i>
+                        Versiyon Listesi
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Hızlı Erişim</span>
+    </div>
+    <div class="card-body" style="padding: 1rem 1.25rem;">
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <a asp-controller="Script" asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Yeni Script Ekle
+            </a>
+            <a asp-controller="Script" asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-list-ul"></i>
+                Tüm Scriptler
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Version" asp-action="Create" class="btn btn-secondary">
+                    <i class="bi bi-plus-circle"></i>
+                    Yeni Versiyon
+                </a>
+            }
+        </div>
+    </div>
+</div>

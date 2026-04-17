@@ -1,0 +1,169 @@
+@model DbScriptManager.Application.DTOs.ScriptDetailDto
+
+@{
+    ViewData["Title"] = Model.ScriptName;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">@Model.ScriptName</h1>
+        <p class="page-header-subtitle">Script detayları ve SQL içeriği</p>
+    </div>
+    <div style="display:flex; gap:0.625rem;">
+        <form asp-action="Execute" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Bu script çalıştırılsın mı?')">
+                <i class="bi bi-play-fill"></i>
+                Çalıştır
+            </button>
+        </form>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Geri
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="row g-3">
+    <!-- Sol kolon: metadata + impact -->
+    <div class="col-lg-4">
+        <!-- Script Bilgileri -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <span class="card-header-title">
+                    <i class="bi bi-info-circle me-2" style="color: var(--accent);"></i>
+                    Script Bilgileri
+                </span>
+            </div>
+            <div class="card-body">
+                <div style="display:flex; flex-direction:column; gap:1rem;">
+                    <div class="info-item">
+                        <span class="info-item-label">Versiyon</span>
+                        <span class="badge-version" style="align-self:flex-start;">@Model.VersionName</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-item-label">Developer</span>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <div style="width:24px; height:24px; background: var(--accent-light); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color: var(--accent);">
+                                @(Model.DeveloperName?.Length > 0 ? Model.DeveloperName[0].ToString().ToUpper() : "?")
+                            </div>
+                            <span class="info-item-value">@Model.DeveloperName</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-item-label">Oluşturulma Tarihi</span>
+                        <span class="info-item-value">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-item-label">Durum</span>
+                        @if (Model.IsExecuted)
+                        {
+                            <span class="badge-count @(Model.IsSuccess ? "badge-success" : "badge-danger")" style="align-self:flex-start;">
+                                @(Model.IsSuccess ? "Başarılı" : "Başarısız")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge-count badge-secondary" style="align-self:flex-start;">Çalıştırılmadı</span>
+                        }
+                    </div>
+                    @if (Model.IsExecuted && Model.ExecutedAt.HasValue)
+                    {
+                        <div class="info-item">
+                            <span class="info-item-label">Çalıştırılma Tarihi</span>
+                            <span class="info-item-value">@Model.ExecutedAt.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessagge))
+                    {
+                        <div class="info-item">
+                            <span class="info-item-label">Hata Mesajı</span>
+                            <span style="font-size:0.75rem; color: var(--danger);">@Model.ErrorMessagge</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Etkilenen Kaynaklar -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">
+                    <i class="bi bi-diagram-3 me-2" style="color: var(--accent);"></i>
+                    Etkilenen Kaynaklar
+                </span>
+            </div>
+            <div class="card-body">
+                <div style="display:flex; flex-direction:column; gap:0.875rem;">
+                    <div class="info-item">
+                        <span class="info-item-label">İşlem Tipi</span>
+                        <span class="badge-count badge-primary" style="align-self:flex-start; font-size:0.75rem; padding:0.25rem 0.75rem;">
+                            @(string.IsNullOrEmpty(Model.OperationType) ? "—" : Model.OperationType)
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-item-label">Etkilenen Tablolar</span>
+                        @if (Model.TargetTables != null && Model.TargetTables.Any())
+                        {
+                            <div style="display:flex; flex-wrap:wrap; gap:0.375rem; margin-top:0.25rem;">
+                                @foreach (var table in Model.TargetTables)
+                                {
+                                    <span style="display:inline-flex; padding:0.2rem 0.6rem; background:#f1f5f9; color: var(--text-secondary); border-radius:4px; font-size:0.7rem; font-weight:600; font-family:monospace;">
+                                        @table
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="info-item-value">—</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ kolon: SQL -->
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">
+                <span class="card-header-title">
+                    <i class="bi bi-code-square me-2" style="color: var(--accent);"></i>
+                    SQL Script
+                </span>
+            </div>
+            <div class="card-body" style="padding: 0.75rem 1rem;">
+                <pre class="code-block">@Model.ScriptContent</pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">
+                    <i class="bi bi-arrow-counterclockwise me-2" style="color: var(--warning);"></i>
+                    Rollback Script
+                </span>
+            </div>
+            <div class="card-body" style="padding: 0.75rem 1rem;">
+                <pre class="code-block">@(string.IsNullOrWhiteSpace(Model.RollbackContent) ? "-- Rollback tanımlanmamış" : Model.RollbackContent)</pre>
+            </div>
+        </div>
+    </div>
+</div>

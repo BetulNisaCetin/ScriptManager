@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DB Script Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a class="sidebar-logo" asp-controller="Home" asp-action="Index">
+            <div class="sidebar-logo-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+            </div>
+            <div class="sidebar-logo-text">
+                <span class="sidebar-logo-title">DB Script Manager</span>
+                <span class="sidebar-logo-subtitle">Script Yönetim Paneli</span>
+            </div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Ana Menü</div>
+
+            <a class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+               asp-controller="Home" asp-action="Index">
+                <i class="bi bi-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+
+            <a class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Script" ? "active" : "")"
+               asp-controller="Script" asp-action="Index">
+                <i class="bi bi-file-earmark-code"></i>
+                <span>Scriptler</span>
+            </a>
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Developer"))
+            {
+                <div class="sidebar-section-label" style="margin-top:1rem;">Yönetim</div>
+
+                <a class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Version" ? "active" : "")"
+                   asp-controller="Version" asp-action="Index">
+                    <i class="bi bi-layers"></i>
+                    <span>Versiyonlar</span>
+                </a>
+            }
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    @(User.Identity.Name?.Length > 0 ? User.Identity.Name[0].ToString().ToUpper() : "?")
+                </div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">@User.Identity.Name</div>
+                    <div class="sidebar-user-role">
+                        @(User.IsInRole("Admin") ? "Administrator" : "Developer")
+                    </div>
+                </div>
+            </div>
+
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="sidebar-logout-btn">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Çıkış Yap</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <span class="topbar-title">@(ViewData["Title"] ?? "DB Script Manager")</span>
+            <div class="topbar-right">
+                <a asp-controller="Script" asp-action="Create" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg"></i>
+                    Yeni Script
+                </a>
+            </div>
+        </div>
+
+        <div class="page-content">
+            @RenderBody()
+        </div>
+    </div>
+}
+else
+{
+    <!-- AUTH LAYOUT — no sidebar, centered -->
+    <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background: var(--body-bg); padding: 2rem 1rem;">
+        <div style="width:100%; max-width:440px;">
+            <div style="text-align:center; margin-bottom:1.5rem;">
+                <div style="display:inline-flex; width:48px; height:48px; background: var(--accent); border-radius:12px; align-items:center; justify-content:center; margin-bottom:0.75rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                </div>
+                <div style="font-size:1.125rem; font-weight:700; color: var(--text-primary); letter-spacing:-0.02em;">DB Script Manager</div>
+                <div style="font-size:0.8125rem; color: var(--text-muted);">Hesabınıza giriş yapın</div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

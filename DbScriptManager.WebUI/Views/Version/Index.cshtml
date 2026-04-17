@@ -1,0 +1,159 @@
+@model List<DbScriptManager.Application.DTOs.VersionDto>
+
+@{
+    ViewData["Title"] = "Versiyonlar";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">Versiyonlar</h1>
+        <p class="page-header-subtitle">Database release versiyonlarını görüntüleyin</p>
+    </div>
+    @if (isAdmin)
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            Yeni Versiyon
+        </a>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">
+            <i class="bi bi-layers me-2" style="color: var(--accent);"></i>
+            Kayıtlı Versiyonlar
+        </span>
+        @if (isAdmin && Model != null && Model.Any())
+        {
+            <form asp-action="BulkDelete" method="post" id="bulkDeleteForm">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Seçilen versiyonlar silinsin mi?')">
+                    <i class="bi bi-trash3"></i>
+                    Seçilenleri Sil
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            @if (isAdmin)
+                            {
+                                <th style="width:40px; text-align:center;">
+                                    <input type="checkbox" id="selectAll" class="form-check-input" />
+                                </th>
+                            }
+                            <th>Versiyon Adı</th>
+                            <th>Oluşturulma Tarihi</th>
+                            <th>Script Sayısı</th>
+                            <th>Rollback Sayısı</th>
+                            <th style="text-align:right; width:@(isAdmin ? "140px" : "80px");">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var version in Model)
+                        {
+                            <tr>
+                                @if (isAdmin)
+                                {
+                                    <td style="text-align:center;">
+                                        <input type="checkbox" name="selectedIds" value="@version.Id"
+                                               class="form-check-input version-checkbox" form="bulkDeleteForm" />
+                                    </td>
+                                }
+                                <td style="font-weight:600; color: var(--text-primary);">
+                                    <i class="bi bi-tag" style="color: var(--accent); margin-right:0.375rem;"></i>
+                                    @version.VersionName
+                                </td>
+                                <td>
+                                    <span style="color: var(--text-muted); font-size:0.75rem;">
+                                        <i class="bi bi-calendar3" style="margin-right:0.25rem;"></i>
+                                        @version.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-count badge-primary">@version.ScriptCount script</span>
+                                </td>
+                                <td>
+                                    <span class="badge-count badge-secondary">@version.RollbackCount rollback</span>
+                                </td>
+                                <td style="text-align:right;">
+                                    <div style="display:flex; gap:0.375rem; justify-content:flex-end;">
+                                        <a asp-action="Detail" asp-route-id="@version.Id"
+                                           class="btn btn-ghost btn-sm" title="Detay">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (isAdmin)
+                                        {
+                                            <form asp-action="Delete" asp-route-id="@version.Id" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-danger btn-sm"
+                                                        onclick="return confirm('Bu versiyon silinsin mi?')" title="Sil">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-layers" style="font-size:1.5rem; color: var(--text-muted);"></i>
+                </div>
+                <div class="empty-state-title">Henüz versiyon yok</div>
+                @if (isAdmin)
+                {
+                    <p class="empty-state-text">İlk versiyonu oluşturmak için butona tıklayın.</p>
+                    <a asp-action="Create" class="btn btn-primary" style="margin-top:0.75rem;">
+                        <i class="bi bi-plus-lg"></i>
+                        Yeni Versiyon Oluştur
+                    </a>
+                }
+                else
+                {
+                    <p class="empty-state-text">Henüz tanımlanmış versiyon bulunmuyor.</p>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("selectAll")?.addEventListener("change", function () {
+            document.querySelectorAll(".version-checkbox")
+                .forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+}

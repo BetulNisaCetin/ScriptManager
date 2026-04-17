@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gemini -p \"MSB3552 error in .NET project: error MSB3552: resource file '*/.resx' not found. This happens during dotnet build on a ASP.NET Core MVC project \\(DbScriptManager.WebUI\\). The error comes from Microsoft.Common.CurrentVersion.targets line 3414. What causes this error and how to fix it? Be concise and specific about the root cause and fix.\" --yolo -o text)",
+      "Bash(dotnet build:*)"
+    ]
+  }
+}

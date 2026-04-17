@@ -1,0 +1,265 @@
+@model DbScriptManager.Application.DTOs.VersionDetailDto
+
+@{
+    ViewData["Title"] = "Versiyon Detayı";
+    var isAdmin = User.IsInRole("Admin");
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">@Model.VersionName</h1>
+        <p class="page-header-subtitle">Versiyon detayları ve ilişkili scriptler</p>
+    </div>
+    <div style="display:flex; gap:0.625rem;">
+        <a asp-controller="Script" asp-action="Create" asp-route-versionId="@Model.Id"
+           class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            Script Ekle
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Geri
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon" style="background: rgba(99,102,241,0.1);">
+                <i class="bi bi-tag" style="font-size:1.125rem; color: var(--accent);"></i>
+            </div>
+            <div class="stat-card-value" style="font-size:1.25rem;">@Model.VersionName</div>
+            <div class="stat-card-label">Versiyon</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon" style="background: rgba(16,185,129,0.1);">
+                <i class="bi bi-file-earmark-code" style="font-size:1.125rem; color: var(--success);"></i>
+            </div>
+            <div class="stat-card-value">@Model.ScriptCount</div>
+            <div class="stat-card-label">Script</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon" style="background: rgba(245,158,11,0.1);">
+                <i class="bi bi-arrow-counterclockwise" style="font-size:1.125rem; color: var(--warning);"></i>
+            </div>
+            <div class="stat-card-value">@Model.RollbackCount</div>
+            <div class="stat-card-label">Rollback</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card @(Model.ConflictCount > 0 ? "conflict-stat-card" : "")">
+            <div class="stat-card-icon" style="background: @(Model.ConflictCount > 0 ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)");">
+                @if (Model.ConflictCount > 0)
+                {
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size:1.125rem; color: var(--danger);"></i>
+                }
+                else
+                {
+                    <i class="bi bi-shield-check" style="font-size:1.125rem; color: var(--success);"></i>
+                }
+            </div>
+            <div class="stat-card-value" style="color: @(Model.ConflictCount > 0 ? "var(--danger)" : "var(--success)");">
+                @Model.ConflictCount
+            </div>
+            <div class="stat-card-label">@(Model.ConflictCount > 0 ? "Çakışma" : "Çakışma Yok")</div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflict Summary Banner -->
+@if (Model.AllConflicts.Any())
+{
+    var highConflicts  = Model.AllConflicts.Where(c => c.Severity == "High").ToList();
+    var medConflicts   = Model.AllConflicts.Where(c => c.Severity == "Medium").ToList();
+
+    <div class="card mb-4" style="border-color: @(highConflicts.Any() ? "#fca5a5" : "#fcd34d"); background: @(highConflicts.Any() ? "rgba(239,68,68,0.04)" : "rgba(245,158,11,0.04)");">
+        <div class="card-header" style="border-color: @(highConflicts.Any() ? "#fca5a5" : "#fcd34d");">
+            <span class="card-header-title" style="color: @(highConflicts.Any() ? "var(--danger)" : "#92400e");">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                @Model.ConflictCount Çakışma Tespit Edildi
+                @if (highConflicts.Any())
+                {
+                    <span class="badge-count badge-danger ms-2">@highConflicts.Count yüksek öncelikli</span>
+                }
+            </span>
+        </div>
+        <div class="card-body">
+            <div style="display:flex; flex-direction:column; gap:0.625rem;">
+                @foreach (var conflict in Model.AllConflicts.OrderByDescending(c => c.Severity))
+                {
+                    var isHigh = conflict.Severity == "High";
+                    <div style="display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem; border-radius:var(--radius); background: @(isHigh ? "rgba(239,68,68,0.06)" : "rgba(245,158,11,0.06)"); border: 1px solid @(isHigh ? "#fca5a5" : "#fcd34d");">
+                        <i class="bi @(conflict.ConflictType == "CacheBusting" ? "bi-lightning-charge-fill" : "bi-table")"
+                           style="font-size:1rem; color:@(isHigh ? "var(--danger)" : "var(--warning)"); flex-shrink:0; margin-top:1px;"></i>
+                        <div style="flex:1;">
+                            <div style="font-size:0.8125rem; font-weight:600; color: var(--text-primary); margin-bottom:0.25rem;">
+                                @conflict.Description
+                            </div>
+                            @if (conflict.CacheBustingOps.Any())
+                            {
+                                <div style="display:flex; flex-wrap:wrap; gap:0.375rem; margin-top:0.375rem;">
+                                    @foreach (var op in conflict.CacheBustingOps)
+                                    {
+                                        <span style="padding:0.15rem 0.5rem; background:rgba(239,68,68,0.1); color:var(--danger); border-radius:4px; font-size:0.7rem; font-weight:600; font-family:monospace;">@op</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <span class="badge-count @(isHigh ? "badge-danger" : "")" style="@(!isHigh ? "background:rgba(245,158,11,0.15);color:#92400e;" : "") flex-shrink:0;">
+                            @conflict.Severity
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else if (Model.Scripts.Any())
+{
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-shield-check-fill"></i>
+        Bu versiyondaki scriptler arasında çakışma tespit edilmedi.
+    </div>
+}
+
+<!-- Scripts Table -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">
+            <i class="bi bi-file-earmark-code me-2" style="color: var(--accent);"></i>
+            Bu Versiyona Ait Scriptler
+        </span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        @if (Model.Scripts != null && Model.Scripts.Any())
+        {
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Script Adı</th>
+                            <th>Developer</th>
+                            <th>Oluşturulma Tarihi</th>
+                            <th style="text-align:center; width:120px;">Durum</th>
+                            <th style="text-align:right; width:100px;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var script in Model.Scripts)
+                        {
+                            var hasHigh = script.Conflicts.Any(c => c.Severity == "High");
+                            var hasMed  = script.HasConflict && !hasHigh;
+
+                            <tr style="@(hasHigh ? "background:rgba(239,68,68,0.03);" : hasMed ? "background:rgba(245,158,11,0.03);" : "")">
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                        @if (hasHigh)
+                                        {
+                                            <i class="bi bi-exclamation-triangle-fill" style="color:var(--danger); font-size:0.875rem;" title="Yüksek öncelikli çakışma"></i>
+                                        }
+                                        else if (hasMed)
+                                        {
+                                            <i class="bi bi-exclamation-circle-fill" style="color:var(--warning); font-size:0.875rem;" title="Orta öncelikli çakışma"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-file-code" style="color: var(--accent); font-size:0.875rem;"></i>
+                                        }
+                                        <span style="font-weight:600; color: var(--text-primary);">@script.ScriptName</span>
+                                    </div>
+                                    @if (script.HasConflict)
+                                    {
+                                        <div style="margin-top:0.25rem; padding-left:1.5rem;">
+                                            @foreach (var c in script.Conflicts.Take(2))
+                                            {
+                                                <span style="font-size:0.7rem; color: @(c.Severity == "High" ? "var(--danger)" : "#92400e");">
+                                                    @if (c.ConflictType == "TableConflict")
+                                                    {
+                                                        <text>⚠ [@c.ConflictTable] ile çakışıyor (@c.ConflictingScriptName)</text>
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>⚡ Cache bozma: @string.Join(", ", c.CacheBustingOps.Take(2))</text>
+                                                    }
+                                                </span>
+                                                <br />
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                        <div style="width:24px; height:24px; background: var(--accent-light); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color: var(--accent);">
+                                            @(script.DeveloperName?.Length > 0 ? script.DeveloperName[0].ToString().ToUpper() : "?")
+                                        </div>
+                                        @script.DeveloperName
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: var(--text-muted); font-size:0.75rem;">
+                                        @script.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                                    </span>
+                                </td>
+                                <td style="text-align:center;">
+                                    @if (hasHigh)
+                                    {
+                                        <span class="badge-count badge-danger">Kritik</span>
+                                    }
+                                    else if (hasMed)
+                                    {
+                                        <span class="badge-count" style="background:rgba(245,158,11,0.15);color:#92400e;">Uyarı</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-count badge-success">Temiz</span>
+                                    }
+                                </td>
+                                <td style="text-align:right;">
+                                    <div style="display:flex; gap:0.375rem; justify-content:flex-end;">
+                                        <a asp-controller="Script" asp-action="Detail" asp-route-id="@script.Id"
+                                           class="btn btn-ghost btn-sm" title="Detay">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (isAdmin || script.CreatedByUserId == currentUserId)
+                                        {
+                                            <form asp-controller="Script" asp-action="Delete" asp-route-id="@script.Id"
+                                                  method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-danger btn-sm"
+                                                        onclick="return confirm('Bu script silinsin mi?')" title="Sil">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-file-earmark-code" style="font-size:1.5rem; color: var(--text-muted);"></i>
+                </div>
+                <div class="empty-state-title">Bu versiyona ait script yok</div>
+                <p class="empty-state-text">İlk scripti eklemek için butona tıklayın.</p>
+                <a asp-controller="Script" asp-action="Create" asp-route-versionId="@Model.Id"
+                   class="btn btn-primary" style="margin-top:0.75rem;">
+                    <i class="bi bi-plus-lg"></i>
+                    Script Ekle
+                </a>
+            </div>
+        }
+    </div>
+</div>

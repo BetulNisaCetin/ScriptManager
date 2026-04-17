@@ -1,0 +1,57 @@
+@model DbScriptManager.Application.DTOs.CreateVersionDto
+
+@{
+    ViewData["Title"] = "Yeni Versiyon";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header-title">Yeni Versiyon Oluştur</h1>
+        <p class="page-header-subtitle">Yeni bir database release versiyonu tanımlayın</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Geri Dön
+    </a>
+</div>
+
+<div style="max-width: 520px;">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">
+                <i class="bi bi-plus-circle me-2" style="color: var(--accent);"></i>
+                Versiyon Bilgileri
+            </span>
+        </div>
+        <div class="card-body">
+            <div asp-validation-summary="All" class="validation-summary-errors" style="display:none;"></div>
+
+            <form asp-action="Create" method="post">
+                <div class="form-group">
+                    <label asp-for="VersionName" class="form-label">Versiyon Adı</label>
+                    <input asp-for="VersionName" class="form-control"
+                           placeholder="Örn: v1.0.0, Release-2026-04" />
+                    <span asp-validation-for="VersionName" class="field-validation-error"></span>
+                    <div class="form-text">Versiyon adı benzersiz olmalıdır.</div>
+                </div>
+
+                <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i>
+                        Oluştur
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show validation summary if it has content
+        const vs = document.querySelector('.validation-summary-errors');
+        if (vs && vs.querySelector('li')) vs.style.display = '';
+    </script>
+}
