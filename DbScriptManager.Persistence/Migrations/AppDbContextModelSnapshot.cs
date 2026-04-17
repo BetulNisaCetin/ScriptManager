@@ -85,6 +85,29 @@ namespace DbScriptManager.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("DbScriptManager.Domain.Entities.DatabaseConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DatabaseConfigs");
+                });
+
             modelBuilder.Entity("DbScriptManager.Domain.Entities.DbScript", b =>
                 {
                     b.Property<int>("Id")
@@ -97,6 +120,9 @@ namespace DbScriptManager.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DatabaseConfigId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DeveloperName")
                         .IsRequired()
@@ -137,6 +163,8 @@ namespace DbScriptManager.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DatabaseConfigId");
 
                     b.HasIndex("VersionId");
 
@@ -298,6 +326,12 @@ namespace DbScriptManager.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DbScriptManager.Domain.Entities.DatabaseConfig", "DatabaseConfig")
+                        .WithMany("Scripts")
+                        .HasForeignKey("DatabaseConfigId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("DbScriptManager.Domain.Entities.DbVersion", "Version")
                         .WithMany("Scripts")
                         .HasForeignKey("VersionId")
@@ -305,6 +339,8 @@ namespace DbScriptManager.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("DatabaseConfig");
 
                     b.Navigation("Version");
                 });
@@ -358,6 +394,11 @@ namespace DbScriptManager.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DbScriptManager.Domain.Entities.DatabaseConfig", b =>
+                {
+                    b.Navigation("Scripts");
                 });
 
             modelBuilder.Entity("DbScriptManager.Domain.Entities.DbVersion", b =>

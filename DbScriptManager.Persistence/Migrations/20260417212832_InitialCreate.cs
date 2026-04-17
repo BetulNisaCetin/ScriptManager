@@ -52,6 +52,21 @@ namespace DbScriptManager.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DatabaseConfigs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DatabaseConfigs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Versions",
                 columns: table => new
                 {
@@ -178,6 +193,7 @@ namespace DbScriptManager.Persistence.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VersionId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DatabaseConfigId = table.Column<int>(type: "INTEGER", nullable: false),
                     ScriptName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     ScriptPath = table.Column<string>(type: "TEXT", nullable: false),
                     RollbackPath = table.Column<string>(type: "TEXT", nullable: false),
@@ -197,6 +213,12 @@ namespace DbScriptManager.Persistence.Migrations
                         name: "FK_Scripts_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Scripts_DatabaseConfigs_DatabaseConfigId",
+                        column: x => x.DatabaseConfigId,
+                        principalTable: "DatabaseConfigs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -250,6 +272,11 @@ namespace DbScriptManager.Persistence.Migrations
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Scripts_DatabaseConfigId",
+                table: "Scripts",
+                column: "DatabaseConfigId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Scripts_VersionId",
                 table: "Scripts",
                 column: "VersionId");
@@ -281,6 +308,9 @@ namespace DbScriptManager.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "DatabaseConfigs");
 
             migrationBuilder.DropTable(
                 name: "Versions");

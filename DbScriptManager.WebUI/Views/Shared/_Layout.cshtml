@@ -54,6 +54,15 @@
                     <i class="bi bi-layers"></i>
                     <span>Versiyonlar</span>
                 </a>
+                 @if (User.IsInRole("Admin"))
+    {
+        <a class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "DatabaseConfig" ? "active" : "")"
+           asp-controller="DatabaseConfig" asp-action="Index">
+            <i class="bi bi-database-gear"></i>
+            <span>Database Yönetimi</span>
+        </a>
+    }
+                
             }
         </nav>
 

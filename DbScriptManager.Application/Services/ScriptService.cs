@@ -5,6 +5,7 @@ using DbScriptManager.Persistence.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using DbScriptManager.Application.Helpers;
+
 namespace DbScriptManager.Application.Services
 {
     public class ScriptService : IScriptService
@@ -12,16 +13,19 @@ namespace DbScriptManager.Application.Services
         private readonly IScriptRepository _repository;
         private readonly IVersionRepository _versionRepository;
         private readonly IConfiguration _configuration;
+        private readonly IDatabaseConfigRepository _dbConfigRepository;
 
     public ScriptService (
         IScriptRepository repository,
         IVersionRepository versionRepository,
-        IConfiguration configuration
+        IConfiguration configuration,
+        IDatabaseConfigRepository dbConfigRepository
         )
         {
             _repository = repository;
             _versionRepository = versionRepository;
             _configuration = configuration;
+            _dbConfigRepository = dbConfigRepository;
         }
 
         public async Task<List<ScriptDto>> GetAllScripts()// içerik dosyadan file pathden geliyor
@@ -46,32 +50,33 @@ namespace DbScriptManager.Application.Services
             }).ToList();
         }
 
-        public async Task CreateScript(CreateScriptDto dto)
+         public async Task CreateScript(CreateScriptDto dto)
         {
             var version = await _versionRepository.GetByIdAsync(dto.VersionId);
             if (version == null)
                 throw new Exception("Versiyon bulunamadı");
 
+            var dbConfig = await _dbConfigRepository.GetByIdAsync(dto.DatabaseConfigId);  // DEĞİŞTİ
+            if (dbConfig == null)
+                throw new Exception("Database bulunamadı");
+
             var rootPath = _configuration["ScriptSettings:RootPath"];
             if (string.IsNullOrWhiteSpace(rootPath))
                 throw new Exception("Script root path tanımlı değil");
 
-            // ScriptType doğrula: Cache | Script | Rollback
             var allowedTypes = new[] { "Cache", "Script", "Rollback" };
             var scriptType = allowedTypes.Contains(dto.ScriptType) ? dto.ScriptType : "Script";
 
-            // Klasör yapısı: RootPath / VersionName / ScriptType /
-            var typeFolder = Path.Combine(rootPath, version.VersionName, scriptType);
+            var typeFolder = Path.Combine(rootPath, version.VersionName, dbConfig.Name, scriptType);
             if (!Directory.Exists(typeFolder))
                 Directory.CreateDirectory(typeFolder);
 
-            // Path traversal koruması
             var safeName = System.Text.RegularExpressions.Regex.Replace(
                 dto.ScriptName, @"[^a-zA-Z0-9_\-]", "_");
             if (string.IsNullOrWhiteSpace(safeName))
                 safeName = "script";
 
-            var scriptPath  = Path.Combine(typeFolder, $"{safeName}.txt");
+            var scriptPath   = Path.Combine(typeFolder, $"{safeName}.txt");
             var rollbackPath = Path.Combine(typeFolder, $"{safeName}_Rollback.txt");
 
             await File.WriteAllTextAsync(scriptPath, dto.ScriptContent);
@@ -83,6 +88,7 @@ namespace DbScriptManager.Application.Services
                 ScriptPath       = scriptPath,
                 RollbackPath     = rollbackPath,
                 VersionId        = version.Id,
+                DatabaseConfigId = dbConfig.Id,
                 CreatedDate      = DateTime.Now,
                 IsExecuted       = false,
                 IsSuccess        = false,
@@ -93,7 +99,6 @@ namespace DbScriptManager.Application.Services
 
             await _repository.AddAsync(script);
         }
-
         public async Task DeleteScript(int id)
         {
             var script = await _repository.GetByIdAsync(id);
@@ -162,7 +167,7 @@ namespace DbScriptManager.Application.Services
             }
             await _repository.UpdateAsync(script);
         }
-        public async Task<ScriptDetailDto> GetScriptDetail(int id)
+        public async Task<ScriptDetailDto?> GetScriptDetail(int id)
         {
             var script = await _repository.GetByIdAsync(id);
             if (script == null)

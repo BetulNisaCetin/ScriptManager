@@ -14,22 +14,24 @@ public class ScriptController : Controller
     private readonly IScriptService _scriptService;
     private readonly IVersionService _versionService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IDatabaseConfigRepository _dbConfigRepository;
 
     public ScriptController(
         IScriptService scriptService,
         UserManager<AppUser> userManager,
-        IVersionService versionService)
+        IVersionService versionService,
+        IDatabaseConfigRepository dbConfigRepository)
     {
         _scriptService = scriptService;
         _versionService = versionService;
         _userManager = userManager;
+        _dbConfigRepository = dbConfigRepository;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
         var scripts = await _scriptService.GetAllScripts();
-        
         return View(scripts);
     }
 
@@ -39,17 +41,16 @@ public class ScriptController : Controller
         var versions = await _versionService.GetAllVersions();
         ViewBag.Versions = new SelectList(versions, "Id", "VersionName", versionId);
 
+        var dbConfigs = await _dbConfigRepository.GetAllAsync();
+        ViewBag.DatabaseConfigs = new SelectList(dbConfigs, "Id", "Name");
+
         var model = new CreateScriptDto();
-        var user =await _userManager.GetUserAsync(User);
+        var user = await _userManager.GetUserAsync(User);
         if (user != null)
-        {
             model.DeveloperName = user.FullName;
-        }
 
         if (versionId.HasValue)
-        {
             model.VersionId = versionId.Value;
-        }
 
         return View(model);
     }
@@ -62,28 +63,29 @@ public class ScriptController : Controller
         {
             var versions = await _versionService.GetAllVersions();
             ViewBag.Versions = new SelectList(versions, "Id", "VersionName", dto.VersionId);
+            var dbConfigs = await _dbConfigRepository.GetAllAsync();
+            ViewBag.DatabaseConfigs = new SelectList(dbConfigs, "Id", "Name", dto.DatabaseConfigId);
             return View(dto);
         }
 
         try
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Unauthorized();
+            if (user == null) return Unauthorized();
 
             dto.CreatedByUserId = user.Id;
-            dto.DeveloperName = user.FullName;
+            dto.DeveloperName   = user.FullName;
 
             await _scriptService.CreateScript(dto);
             TempData["SuccessMessage"] = "Script başarıyla oluşturuldu";
-
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             var versions = await _versionService.GetAllVersions();
             ViewBag.Versions = new SelectList(versions, "Id", "VersionName", dto.VersionId);
-
+            var dbConfigs = await _dbConfigRepository.GetAllAsync();
+            ViewBag.DatabaseConfigs = new SelectList(dbConfigs, "Id", "Name", dto.DatabaseConfigId);
             ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
             return View(dto);
         }
@@ -94,21 +96,17 @@ public class ScriptController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var script = await _scriptService.GetById(id);
-        if (script == null)
-            return NotFound();
+        if (script == null) return NotFound();
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized();
+        if (user == null) return Unauthorized();
 
         var isAdmin = User.IsInRole("Admin");
-
         if (!isAdmin && script.CreatedByUserId != user.Id)
             return Forbid();
 
         await _scriptService.Delete(id);
         TempData["SuccessMessage"] = "Script başarıyla silindi";
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -116,9 +114,7 @@ public class ScriptController : Controller
     public async Task<IActionResult> Detail(int id)
     {
         var script = await _scriptService.GetScriptDetail(id);
-        if (script == null)
-            return NotFound();
-
+        if (script == null) return NotFound();
         return View(script);
     }
 
@@ -127,15 +123,12 @@ public class ScriptController : Controller
     public async Task<IActionResult> Execute(int id)
     {
         var script = await _scriptService.GetById(id);
-        if (script == null)
-            return NotFound();
+        if (script == null) return NotFound();
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized();
+        if (user == null) return Unauthorized();
 
         var isAdmin = User.IsInRole("Admin");
-
         if (!isAdmin && script.CreatedByUserId != user.Id)
             return Forbid();
 

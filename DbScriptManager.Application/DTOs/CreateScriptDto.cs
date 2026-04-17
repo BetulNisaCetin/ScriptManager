@@ -13,6 +13,7 @@ namespace DbScriptManager.Application.DTOs
         public int VersionId { get; set; }
         public string DeveloperName { get; set; } = string.Empty;
         public string? CreatedByUserId { get; set; }
+        public int DatabaseConfigId { get; set; }  // YENİ
 
         /// <summary>Cache | Script | Rollback</summary>
         [Required]

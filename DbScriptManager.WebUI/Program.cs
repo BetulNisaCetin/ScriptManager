@@ -55,6 +55,8 @@ builder.Services.AddScoped<IScriptService, ScriptService>();
 builder.Services.AddScoped<IVersionRepository, VersionRepository>();
 builder.Services.AddScoped<IConflictDetectionService, ConflictDetectionService>();
 builder.Services.AddScoped<IVersionService, VersionService>();
+// Program.cs — mevcut servis kayıtlarının yanına ekle
+builder.Services.AddScoped<IDatabaseConfigRepository, DatabaseConfigRepository>();
 
 var app = builder.Build();
 

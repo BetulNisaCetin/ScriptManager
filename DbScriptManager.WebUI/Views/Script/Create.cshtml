@@ -124,6 +124,13 @@
                         </select>
                         <span asp-validation-for="VersionId" class="field-validation-error"></span>
                     </div>
+                    <div class="form-group">
+                     <label asp-for="DatabaseConfigId" class="form-label">Database</label>
+                    <select asp-for="DatabaseConfigId" asp-items="ViewBag.DatabaseConfigs" class="form-control form-select">
+                    <option value="">— Database seçin —</option>
+                    </select>
+                    <span asp-validation-for="DatabaseConfigId" class="field-validation-error"></span>
+                    </div>
 
                     <div class="form-group" style="margin-bottom:0;">
                         <label asp-for="DeveloperName" class="form-label">Developer Adı</label>
@@ -135,21 +142,22 @@
             </div>
 
             <!-- Klasör önizleme -->
-            <div class="card mb-3" id="pathPreviewCard">
-                <div class="card-header">
-                    <span class="card-header-title">
-                        <i class="bi bi-folder2-open me-2" style="color: var(--accent);"></i>
-                        Kayıt Yolu
-                    </span>
-                </div>
-                <div class="card-body" style="padding: 0.875rem 1rem;">
-                    <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); line-height:1.8;">
-                        <span style="color: var(--text-muted);">📁 VersionAdı /</span><br>
-                        <span style="color: var(--text-muted); padding-left:1rem;">📁 </span><span id="previewType" style="color: var(--accent); font-weight:600;">Script</span><br>
-                        <span style="color: var(--text-muted); padding-left:2rem;">📄 </span><span id="previewName">scriptAdı</span><span style="color: var(--text-muted)">.txt</span>
-                    </div>
-                </div>
-            </div>
+<div class="card mb-3" id="pathPreviewCard">
+    <div class="card-header">
+        <span class="card-header-title">
+            <i class="bi bi-folder2-open me-2" style="color: var(--accent);"></i>
+            Kayıt Yolu
+        </span>
+    </div>
+    <div class="card-body" style="padding: 0.875rem 1rem;">
+        <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); line-height:1.8;">
+            <span style="color: var(--text-muted);">📁 VersionAdı /</span><br>
+            <span style="color: var(--text-muted); padding-left:1rem;">📁 </span><span id="previewDb" style="color: #10b981; font-weight:600;">database</span><span style="color: var(--text-muted);"> /</span><br>
+            <span style="color: var(--text-muted); padding-left:2rem;">📁 </span><span id="previewType" style="color: var(--accent); font-weight:600;">Script</span><span style="color: var(--text-muted);"> /</span><br>
+            <span style="color: var(--text-muted); padding-left:3rem;">📄 </span><span id="previewName">scriptAdı</span><span style="color: var(--text-muted)">.txt</span>
+        </div>
+    </div>
+</div>
 
             <div style="display:flex; flex-direction:column; gap:0.625rem;">
                 <button type="submit" class="btn btn-primary" style="justify-content:center;">
@@ -239,21 +247,26 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Kayıt yolu önizleme
-        const typeRadios = document.querySelectorAll('input[name="ScriptType"]');
-        const nameInput  = document.getElementById('ScriptName');
+        const typeRadios  = document.querySelectorAll('input[name="ScriptType"]');
+        const nameInput   = document.getElementById('ScriptName');
+        const dbSelect    = document.getElementById('DatabaseConfigId');
         const previewType = document.getElementById('previewType');
         const previewName = document.getElementById('previewName');
+        const previewDb   = document.getElementById('previewDb');
 
         function updatePreview() {
             const selectedType = document.querySelector('input[name="ScriptType"]:checked')?.value || 'Script';
             const name = nameInput?.value?.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'scriptAdı';
+            const dbName = dbSelect?.options[dbSelect.selectedIndex]?.text || 'database';
+
             previewType.textContent = selectedType;
             previewName.textContent = name;
+            previewDb.textContent   = dbSelect?.value ? dbName : 'database';
         }
 
         typeRadios.forEach(r => r.addEventListener('change', updatePreview));
         nameInput?.addEventListener('input', updatePreview);
+        dbSelect?.addEventListener('change', updatePreview);
         updatePreview();
     </script>
 }

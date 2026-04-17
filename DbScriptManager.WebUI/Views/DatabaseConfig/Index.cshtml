@@ -1,0 +1,82 @@
+@model List<DbScriptManager.Domain.Entities.DatabaseConfig>
+@{ ViewData["Title"] = "Database Yönetimi"; }
+
+<div class="container mt-4">
+    <h2 class="mb-4">Database Yönetimi</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">Yeni Database Ekle</div>
+        <div class="card-body">
+            <form asp-controller="DatabaseConfig" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Database Adı <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Örn: PROD_HR" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Açıklama</label>
+                        <input type="text" name="description" class="form-control" placeholder="Opsiyonel" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Ekle</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Mevcut Databaseler</div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-4 text-muted">Henüz database eklenmemiş.</div>
+            }
+            else
+            {
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th><th>Ad</th><th>Açıklama</th><th>Tarih</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var db in Model)
+                        {
+                            <tr>
+                                <td>@db.Id</td>
+                                <td><span class="badge bg-secondary">@db.Name</span></td>
+                                <td>@db.Description</td>
+                                <td>@db.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td class="text-end">
+                                    <form asp-controller="DatabaseConfig" asp-action="Delete"
+                                          asp-route-id="@db.Id" method="post"
+                                          onsubmit="return confirm('@db.Name silinsin mi?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

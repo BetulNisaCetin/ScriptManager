@@ -10,11 +10,13 @@ namespace DbScriptManager.Domain.Entities
     { 
         public int Id { get; set; }
         public int VersionId { get; set; }
+        public int DatabaseConfigId { get; set; } 
         public string ScriptName { get; set; } = string.Empty;
         public string ScriptPath { get; set; } = string.Empty;
         public string RollbackPath { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DbVersion Version { get; set; } = null;
+        public DatabaseConfig DatabaseConfig { get; set; } = null!;
         public bool IsExecuted { get; set; }
         public DateTime? ExecutedAt { get; set; }
         public bool IsSuccess { get; set; }
