@@ -18,11 +18,18 @@ namespace DbScriptManager.Persistence.Repositories
         public async Task<DatabaseConfig?> GetByIdAsync(int id)
             => await _context.DatabaseConfigs.FindAsync(id);
 
-        public async Task AddAsync(DatabaseConfig config)
-        {
-            _context.DatabaseConfigs.Add(config);
-            await _context.SaveChangesAsync();
-        }
+        // DatabaseConfigRepository.cs — AddAsync metodunu güncelle
+    public async Task AddAsync(DatabaseConfig config)       
+    {
+    var exists = await _context.DatabaseConfigs
+        .AnyAsync(d => d.Name.ToLower() == config.Name.ToLower());
+
+    if (exists)
+        throw new Exception($"'{config.Name}' adında bir database zaten mevcut");
+
+    _context.DatabaseConfigs.Add(config);
+    await _context.SaveChangesAsync();
+    }
 
         public async Task DeleteAsync(int id)
         {

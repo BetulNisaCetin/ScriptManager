@@ -51,55 +51,71 @@ namespace DbScriptManager.Application.Services
             }).ToList();
         }
 
-         public async Task CreateScript(CreateScriptDto dto)
-        {
-            var version = await _versionRepository.GetByIdAsync(dto.VersionId);
-            if (version == null)
-                throw new Exception("Versiyon bulunamadı");
+        public async Task CreateScript(CreateScriptDto dto)
+{
+    var version = await _versionRepository.GetByIdAsync(dto.VersionId);
+    if (version == null)
+        throw new Exception("Versiyon bulunamadı");
 
-            var dbConfig = await _dbConfigRepository.GetByIdAsync(dto.DatabaseConfigId);  // DEĞİŞTİ
-            if (dbConfig == null)
-                throw new Exception("Database bulunamadı");
+    var dbConfig = await _dbConfigRepository.GetByIdAsync(dto.DatabaseConfigId);
+    if (dbConfig == null)
+        throw new Exception("Database bulunamadı");
 
-            var rootPath = _configuration["ScriptSettings:RootPath"];
-            if (string.IsNullOrWhiteSpace(rootPath))
-                throw new Exception("Script root path tanımlı değil");
+    var rootPath = _configuration["ScriptSettings:RootPath"];
+    if (string.IsNullOrWhiteSpace(rootPath))
+        throw new Exception("Script root path tanımlı değil");
 
-            var allowedTypes = new[] { "Cache", "Script", "Rollback" };
-            var scriptType = allowedTypes.Contains(dto.ScriptType) ? dto.ScriptType : "Script";
+    var allowedTypes = new[] { "Cache", "Script", "Rollback" };
+    var scriptType = allowedTypes.Contains(dto.ScriptType) ? dto.ScriptType : "Script";
 
-            var typeFolder = Path.Combine(rootPath, version.VersionName, dbConfig.Name, scriptType);
-            if (!Directory.Exists(typeFolder))
-                Directory.CreateDirectory(typeFolder);
+    // Tip bazlı validation
+    if (scriptType == "Rollback" && string.IsNullOrWhiteSpace(dto.RollbackScript))
+        throw new Exception("Rollback içeriği zorunludur");
 
-            var safeName = System.Text.RegularExpressions.Regex.Replace(
-                dto.ScriptName, @"[^a-zA-Z0-9_\-]", "_");
-            if (string.IsNullOrWhiteSpace(safeName))
-                safeName = "script";
+    if (scriptType != "Rollback" && string.IsNullOrWhiteSpace(dto.ScriptContent))
+        throw new Exception("Script içeriği zorunludur");
 
-            var scriptPath   = Path.Combine(typeFolder, $"{safeName}.txt");
-            var rollbackPath = Path.Combine(typeFolder, $"{safeName}_Rollback.txt");
+    var typeFolder = Path.Combine(rootPath, version.VersionName, dbConfig.Name, scriptType);
+    if (!Directory.Exists(typeFolder))
+        Directory.CreateDirectory(typeFolder);
 
-            await File.WriteAllTextAsync(scriptPath, dto.ScriptContent);
-            await File.WriteAllTextAsync(rollbackPath, dto.RollbackScript ?? string.Empty);
+    var safeName = System.Text.RegularExpressions.Regex.Replace(
+        dto.ScriptName, @"[^a-zA-Z0-9_\-]", "_");
+    if (string.IsNullOrWhiteSpace(safeName))
+        safeName = "script";
 
-            var script = new DbScript
-            {
-                ScriptName       = dto.ScriptName,
-                ScriptPath       = scriptPath,
-                RollbackPath     = rollbackPath,
-                VersionId        = version.Id,
-                DatabaseConfigId = dbConfig.Id,
-                CreatedDate      = DateTime.Now,
-                IsExecuted       = false,
-                IsSuccess        = false,
-                DeveloperName    = dto.DeveloperName,
-                CreatedByUserId  = dto.CreatedByUserId ?? string.Empty,
-                ScriptType       = scriptType
-            };
+    var scriptPath   = Path.Combine(typeFolder, $"{safeName}.txt");
+    var rollbackPath = Path.Combine(typeFolder, $"{safeName}_Rollback.txt");
 
-            await _repository.AddAsync(script);
-        }
+    // Tip bazlı dosya yazma
+    if (scriptType == "Rollback")
+    {
+        await File.WriteAllTextAsync(scriptPath, dto.RollbackScript ?? string.Empty);
+        rollbackPath = string.Empty;  // Rollback tipinde ayrı rollback dosyası yok
+    }
+    else
+    {
+        await File.WriteAllTextAsync(scriptPath, dto.ScriptContent ?? string.Empty);
+        await File.WriteAllTextAsync(rollbackPath, string.Empty);
+    }
+
+    var script = new DbScript
+    {
+        ScriptName       = dto.ScriptName,
+        ScriptPath       = scriptPath,
+        RollbackPath     = rollbackPath,
+        VersionId        = version.Id,
+        DatabaseConfigId = dbConfig.Id,
+        CreatedDate      = DateTime.Now,
+        IsExecuted       = false,
+        IsSuccess        = false,
+        DeveloperName    = dto.DeveloperName,
+        CreatedByUserId  = dto.CreatedByUserId ?? string.Empty,
+        ScriptType       = scriptType
+    };
+
+    await _repository.AddAsync(script);
+}
         public async Task DeleteScript(int id)
         {
             var script = await _repository.GetByIdAsync(id);

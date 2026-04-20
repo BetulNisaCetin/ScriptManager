@@ -20,24 +20,32 @@ namespace DbScriptManager.WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string name, string description)
+       
+public async Task<IActionResult> Create(string name, string description)
+{
+    if (string.IsNullOrWhiteSpace(name))
+    {
+        TempData["ErrorMessage"] = "Database adı zorunludur";
+        return RedirectToAction(nameof(Index));
+    }
+
+    try
+    {
+        await _dbConfigRepository.AddAsync(new DatabaseConfig
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                TempData["ErrorMessage"] = "Database adı zorunludur";
-                return RedirectToAction(nameof(Index));
-            }
+            Name        = name.Trim(),
+            Description = description?.Trim() ?? string.Empty,
+            CreatedDate = DateTime.UtcNow
+        });
+        TempData["SuccessMessage"] = "Database eklendi";
+    }
+    catch (Exception ex)
+    {
+        TempData["ErrorMessage"] = ex.Message;
+    }
 
-            await _dbConfigRepository.AddAsync(new DatabaseConfig
-            {
-                Name        = name.Trim(),
-                Description = description?.Trim() ?? string.Empty,
-                CreatedDate = DateTime.UtcNow
-            });
-
-            TempData["SuccessMessage"] = "Database eklendi";
-            return RedirectToAction(nameof(Index));
-        }
+    return RedirectToAction(nameof(Index));
+}
 
         [HttpPost]
         [ValidateAntiForgeryToken]

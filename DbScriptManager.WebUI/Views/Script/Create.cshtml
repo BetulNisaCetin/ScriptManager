@@ -15,8 +15,6 @@
     </a>
 </div>
 
-@*<div asp-validation-summary="All" class="validation-summary-errors"></div>*@
-
 <form asp-action="Create" method="post">
 
     <!-- Script Tipi Picker -->
@@ -76,7 +74,7 @@
                 <div class="card-header">
                     <span class="card-header-title">
                         <i class="bi bi-file-earmark-code me-2" style="color: var(--accent);"></i>
-                        Script İçeriği
+                        <span id="contentCardTitle">Script İçeriği</span>
                     </span>
                 </div>
                 <div class="card-body">
@@ -87,19 +85,21 @@
                         <span asp-validation-for="ScriptName" class="field-validation-error"></span>
                     </div>
 
-                    <div class="form-group">
+                    <!-- Cache ve Script tipinde göster -->
+                    <div class="form-group" id="scriptContentGroup">
                         <label asp-for="ScriptContent" class="form-label">SQL Script</label>
                         <textarea asp-for="ScriptContent" class="form-control textarea-code" rows="10"
                                   placeholder="-- SQL kodunuzu buraya yazın&#10;ALTER TABLE users ADD COLUMN email VARCHAR(255);"></textarea>
                         <span asp-validation-for="ScriptContent" class="field-validation-error"></span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom:0;">
+                    <!-- Sadece Rollback tipinde göster -->
+                    <div class="form-group" id="rollbackContentGroup" style="margin-bottom:0;">
                         <label asp-for="RollbackScript" class="form-label">
                             Rollback SQL
                             <span style="font-weight:400; color: var(--text-muted);">(geri alma)</span>
                         </label>
-                        <textarea asp-for="RollbackScript" class="form-control textarea-code" rows="7"
+                        <textarea asp-for="RollbackScript" class="form-control textarea-code" rows="10"
                                   placeholder="-- Geri alma kodunuzu buraya yazın&#10;ALTER TABLE users DROP COLUMN email;"></textarea>
                         <span asp-validation-for="RollbackScript" class="field-validation-error"></span>
                     </div>
@@ -125,13 +125,12 @@
                         <span asp-validation-for="VersionId" class="field-validation-error"></span>
                     </div>
                     <div class="form-group">
-                     <label asp-for="DatabaseConfigId" class="form-label">Database</label>
-                    <select asp-for="DatabaseConfigId" asp-items="ViewBag.DatabaseConfigs" class="form-control form-select">
-                    <option value="">— Database seçin —</option>
-                    </select>
-                    <span asp-validation-for="DatabaseConfigId" class="field-validation-error"></span>
+                        <label asp-for="DatabaseConfigId" class="form-label">Database</label>
+                        <select asp-for="DatabaseConfigId" asp-items="ViewBag.DatabaseConfigs" class="form-control form-select">
+                            <option value="">— Database seçin —</option>
+                        </select>
+                        <span asp-validation-for="DatabaseConfigId" class="field-validation-error"></span>
                     </div>
-
                     <div class="form-group" style="margin-bottom:0;">
                         <label asp-for="DeveloperName" class="form-label">Developer Adı</label>
                         <input asp-for="DeveloperName" class="form-control"
@@ -142,22 +141,22 @@
             </div>
 
             <!-- Klasör önizleme -->
-<div class="card mb-3" id="pathPreviewCard">
-    <div class="card-header">
-        <span class="card-header-title">
-            <i class="bi bi-folder2-open me-2" style="color: var(--accent);"></i>
-            Kayıt Yolu
-        </span>
-    </div>
-    <div class="card-body" style="padding: 0.875rem 1rem;">
-        <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); line-height:1.8;">
-            <span style="color: var(--text-muted);">📁 VersionAdı /</span><br>
-            <span style="color: var(--text-muted); padding-left:1rem;">📁 </span><span id="previewDb" style="color: #10b981; font-weight:600;">database</span><span style="color: var(--text-muted);"> /</span><br>
-            <span style="color: var(--text-muted); padding-left:2rem;">📁 </span><span id="previewType" style="color: var(--accent); font-weight:600;">Script</span><span style="color: var(--text-muted);"> /</span><br>
-            <span style="color: var(--text-muted); padding-left:3rem;">📄 </span><span id="previewName">scriptAdı</span><span style="color: var(--text-muted)">.txt</span>
-        </div>
-    </div>
-</div>
+            <div class="card mb-3" id="pathPreviewCard">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="bi bi-folder2-open me-2" style="color: var(--accent);"></i>
+                        Kayıt Yolu
+                    </span>
+                </div>
+                <div class="card-body" style="padding: 0.875rem 1rem;">
+                    <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); line-height:1.8;">
+                        <span style="color: var(--text-muted);">📁 VersionAdı /</span><br>
+                        <span style="color: var(--text-muted); padding-left:1rem;">📁 </span><span id="previewDb" style="color: #10b981; font-weight:600;">database</span><span style="color: var(--text-muted);"> /</span><br>
+                        <span style="color: var(--text-muted); padding-left:2rem;">📁 </span><span id="previewType" style="color: var(--accent); font-weight:600;">Script</span><span style="color: var(--text-muted);"> /</span><br>
+                        <span style="color: var(--text-muted); padding-left:3rem;">📄 </span><span id="previewName">scriptAdı</span><span style="color: var(--text-muted)">.txt</span>
+                    </div>
+                </div>
+            </div>
 
             <div style="display:flex; flex-direction:column; gap:0.625rem;">
                 <button type="submit" class="btn btn-primary" style="justify-content:center;">
@@ -178,19 +177,16 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
 }
-
 .type-option {
     cursor: pointer;
     position: relative;
 }
-
 .type-option input[type="radio"] {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
-
 .type-option-inner {
     display: flex;
     flex-direction: column;
@@ -203,18 +199,15 @@
     transition: all 0.15s ease;
     gap: 0.5rem;
 }
-
 .type-option:hover .type-option-inner {
     border-color: var(--accent);
     background: rgba(99,102,241,0.03);
 }
-
 .type-option input[type="radio"]:checked + .type-option-inner {
     border-color: var(--accent);
     background: rgba(99,102,241,0.06);
     box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
-
 .type-icon {
     width: 40px;
     height: 40px;
@@ -224,19 +217,16 @@
     justify-content: center;
     font-size: 1.125rem;
 }
-
 .type-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
 }
-
 .type-desc {
     font-size: 0.7rem;
     color: var(--text-muted);
     line-height: 1.4;
 }
-
 @@media (max-width: 576px) {
     .script-type-picker {
         grid-template-columns: 1fr;
@@ -247,26 +237,48 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        const typeRadios  = document.querySelectorAll('input[name="ScriptType"]');
-        const nameInput   = document.getElementById('ScriptName');
-        const dbSelect    = document.getElementById('DatabaseConfigId');
-        const previewType = document.getElementById('previewType');
-        const previewName = document.getElementById('previewName');
-        const previewDb   = document.getElementById('previewDb');
+        const typeRadios           = document.querySelectorAll('input[name="ScriptType"]');
+        const nameInput            = document.getElementById('ScriptName');
+        const dbSelect             = document.getElementById('DatabaseConfigId');
+        const previewType          = document.getElementById('previewType');
+        const previewName          = document.getElementById('previewName');
+        const previewDb            = document.getElementById('previewDb');
+        const scriptContentGroup   = document.getElementById('scriptContentGroup');
+        const rollbackContentGroup = document.getElementById('rollbackContentGroup');
+        const contentCardTitle     = document.getElementById('contentCardTitle');
+
+        function updateFields() {
+            const selected = document.querySelector('input[name="ScriptType"]:checked')?.value || 'Script';
+
+            if (selected === 'Rollback') {
+                scriptContentGroup.style.display   = 'none';
+                rollbackContentGroup.style.display  = 'block';
+                contentCardTitle.textContent        = 'Rollback İçeriği';
+                document.getElementById('ScriptContent').removeAttribute('required');
+                document.getElementById('RollbackScript').setAttribute('required', 'required');
+            } else {
+                scriptContentGroup.style.display   = 'block';
+                rollbackContentGroup.style.display  = 'none';
+                contentCardTitle.textContent        = 'Script İçeriği';
+                document.getElementById('ScriptContent').setAttribute('required', 'required');
+                document.getElementById('RollbackScript').removeAttribute('required');
+            }
+
+            updatePreview();
+        }
 
         function updatePreview() {
             const selectedType = document.querySelector('input[name="ScriptType"]:checked')?.value || 'Script';
-            const name = nameInput?.value?.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'scriptAdı';
+            const name   = nameInput?.value?.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'scriptAdı';
             const dbName = dbSelect?.options[dbSelect.selectedIndex]?.text || 'database';
-
             previewType.textContent = selectedType;
             previewName.textContent = name;
             previewDb.textContent   = dbSelect?.value ? dbName : 'database';
         }
 
-        typeRadios.forEach(r => r.addEventListener('change', updatePreview));
+        typeRadios.forEach(r => r.addEventListener('change', updateFields));
         nameInput?.addEventListener('input', updatePreview);
         dbSelect?.addEventListener('change', updatePreview);
-        updatePreview();
+        updateFields();
     </script>
 }
