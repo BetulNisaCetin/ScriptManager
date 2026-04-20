@@ -24,10 +24,10 @@ namespace DbScriptManager.Persistence.Repositories
         public async Task<DbScript> GetByIdAsync(int id)
         {
             return await _context.Scripts
-        .Include(s => s.Version)
-        .Include(s => s.DatabaseConfig)   // YENİ
-        .FirstOrDefaultAsync(s => s.Id == id)
-        ?? throw new Exception("Script bulunamadı");
+            .Include(s => s.Version)
+            .Include(s => s.DatabaseConfig)   // YENİ
+            .FirstOrDefaultAsync(s => s.Id == id)
+            ?? throw new Exception("Script bulunamadı");
         }
 
         public async Task AddAsync(DbScript script)

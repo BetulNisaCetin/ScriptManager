@@ -29,14 +29,14 @@ public class ScriptController : Controller
     }
 
     [HttpGet]
-public async Task<IActionResult> Index(
-    string? searchTerm,
-    int? versionId,
-    int? databaseConfigId,
-    string? scriptType,
-    DateTime? dateFrom,
-    DateTime? dateTo)
-{
+    public async Task<IActionResult> Index(
+        string? searchTerm,
+        int? versionId,
+        int? databaseConfigId,
+        string? scriptType,
+        DateTime? dateFrom,
+        DateTime? dateTo)
+    {
     var filter = new ScriptFilterDto
     {
         SearchTerm       = searchTerm,

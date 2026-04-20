@@ -2,77 +2,266 @@
     ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="page-header">
-    <div>
-        <h1 class="page-header-title">Hoş Geldiniz</h1>
-        <p class="page-header-subtitle">DB Script Manager — Veritabanı scriptlerinizi yönetin</p>
-    </div>
-</div>
+<style>
+    .home-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        padding: 1.375rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+        box-shadow: var(--shadow-sm);
+    }
 
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="stat-card">
-            <div class="stat-card-icon" style="background: rgba(99,102,241,0.1);">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    .home-stat-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .home-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .home-stat-card.card-blue::before { background: var(--accent); }
+    .home-stat-card.card-orange::before { background: var(--warning); }
+
+    .home-stat-card .stat-card-icon {
+        margin-bottom: 1rem;
+    }
+
+    .home-stat-card.card-blue .stat-card-icon {
+        background: var(--accent-light);
+    }
+
+    .home-stat-card.card-orange .stat-card-icon {
+        background: var(--warning-light);
+    }
+
+    .home-stat-card .stat-card-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .home-stat-desc {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin-bottom: 1.125rem;
+    }
+
+    .home-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 640px) {
+        .home-cards-grid { grid-template-columns: 1fr; }
+    }
+
+    .home-page-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1.75rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 2px solid var(--accent);
+    }
+
+    .home-page-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .home-page-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .quick-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 1.375rem;
+        background: var(--body-bg);
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .quick-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .quick-card-title i {
+        color: var(--warning);
+        font-size: 1rem;
+    }
+
+    .quick-card-body {
+        padding: 1rem 1.375rem;
+        display: flex;
+        gap: 0.625rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .quick-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--border-color);
+        margin: 0 4px;
+    }
+
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--accent);
+        background: var(--accent-light);
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+    .btn-warning-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.4375rem 0.875rem;
+        background: var(--warning);
+        color: #fff;
+        border: 1px solid var(--warning);
+        border-radius: var(--radius);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.1s;
+        line-height: 1.4;
+    }
+
+    .btn-warning-brand:hover {
+        opacity: 0.88;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .btn-warning-brand:active { transform: scale(0.97); }
+</style>
+
+<div>
+    <!-- Page Header -->
+    <div class="home-page-header">
+        <div class="home-page-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="page-header-title">Hoş Geldiniz</h1>
+            <p class="page-header-subtitle">DB Script Manager — Veritabanı scriptlerinizi yönetin</p>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="home-cards-grid">
+
+        <!-- Scripts Card -->
+        <div class="home-stat-card card-blue">
+            <div class="stat-card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="16 18 22 12 16 6"/>
                     <polyline points="8 6 2 12 8 18"/>
                 </svg>
             </div>
             <div class="stat-card-label">Scriptler</div>
-            <div style="font-size:0.8125rem; color: var(--text-secondary); margin-top:0.5rem;">
-                SQL scriptlerinizi oluşturun, yönetin ve takip edin.
-            </div>
-            <div style="margin-top:1rem;">
-                <a asp-controller="Script" asp-action="Index" class="btn btn-primary btn-sm">
-                    <i class="bi bi-arrow-right"></i>
-                    Script Listesi
-                </a>
-            </div>
+            <div class="home-stat-desc">SQL scriptlerinizi oluşturun, yönetin ve takip edin.</div>
+            <a asp-controller="Script" asp-action="Index" class="btn btn-primary btn-sm">
+                <i class="bi bi-arrow-right"></i>
+                Script Listesi
+            </a>
         </div>
-    </div>
 
-    @if (User.IsInRole("Admin"))
-    {
-        <div class="col-md-6">
-            <div class="stat-card">
-                <div class="stat-card-icon" style="background: rgba(16,185,129,0.1);">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Versions Card (Admin only) -->
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="home-stat-card card-orange">
+                <div class="stat-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="12 2 2 7 12 12 22 7 12 2"/>
                         <polyline points="2 17 12 22 22 17"/>
                         <polyline points="2 12 12 17 22 12"/>
                     </svg>
                 </div>
                 <div class="stat-card-label">Versiyonlar</div>
-                <div style="font-size:0.8125rem; color: var(--text-secondary); margin-top:0.5rem;">
-                    Database release versiyonlarını oluşturun ve yönetin.
-                </div>
-                <div style="margin-top:1rem;">
-                    <a asp-controller="Version" asp-action="Index" class="btn btn-sm btn-secondary">
-                        <i class="bi bi-arrow-right"></i>
-                        Versiyon Listesi
-                    </a>
-                </div>
+                <div class="home-stat-desc">Database release versiyonlarını oluşturun ve yönetin.</div>
+                <a asp-controller="Version" asp-action="Index" class="btn btn-sm btn-warning-brand">
+                    <i class="bi bi-arrow-right"></i>
+                    Versiyon Listesi
+                </a>
             </div>
-        </div>
-    }
-</div>
+        }
 
-<div class="card">
-    <div class="card-header">
-        <span class="card-header-title">Hızlı Erişim</span>
     </div>
-    <div class="card-body" style="padding: 1rem 1.25rem;">
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <a asp-controller="Script" asp-action="Create" class="btn btn-primary">
+
+    <!-- Quick Access -->
+    <div class="quick-card">
+        <div class="quick-card-header">
+            <div class="quick-card-title">
+                <i class="bi bi-lightning-fill"></i>
+                Hızlı Erişim
+            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <span class="admin-badge">
+                    <i class="bi bi-shield-fill"></i>
+                    Admin
+                </span>
+            }
+        </div>
+        <div class="quick-card-body">
+            <a asp-controller="Script" asp-action="Create" class="btn btn-warning-brand">
                 <i class="bi bi-plus-lg"></i>
                 Yeni Script Ekle
             </a>
-            <a asp-controller="Script" asp-action="Index" class="btn btn-secondary">
+            <a asp-controller="Script" asp-action="Index" class="btn btn-primary">
                 <i class="bi bi-list-ul"></i>
                 Tüm Scriptler
             </a>
             @if (User.IsInRole("Admin"))
             {
+                <div class="quick-divider"></div>
                 <a asp-controller="Version" asp-action="Create" class="btn btn-secondary">
                     <i class="bi bi-plus-circle"></i>
                     Yeni Versiyon
