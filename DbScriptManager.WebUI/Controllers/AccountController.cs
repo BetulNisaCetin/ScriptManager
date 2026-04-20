@@ -22,10 +22,7 @@ namespace DbScriptManager.WebUI.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
+        public IActionResult Register() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -36,62 +33,49 @@ namespace DbScriptManager.WebUI.Controllers
 
             var user = new AppUser
             {
-                FullName = model.FullName,
-                UserName = model.Email,
-                Email = model.Email,
+                FirstName = model.FirstName,   // YENİ
+                LastName  = model.LastName,    // YENİ
+                UserName  = model.UserName,    // kullanıcı kodu
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                // Developer rolü IdentitySeed tarafından startup'ta oluşturulur
                 await _userManager.AddToRoleAsync(user, "Developer");
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
 
-          
             foreach (var error in result.Errors)
-            {
                 ModelState.AddModelError(string.Empty, error.Description);
-            }
 
             return View(model);
-
         }
 
         [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
+        public IActionResult Login() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login (LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
-            //email ile kullancıyı bul username ile giriş yap
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Kullanıcı bulunamadı");
-                return View(model);
-            }
+
+            // Kullanıcı kodu ile direkt giriş
             var result = await _signInManager.PasswordSignInAsync(
-                user.UserName,
+                model.UserName,
                 model.Password,
                 model.RememberMe,
                 lockoutOnFailure: true);
 
             if (result.Succeeded)
                 return RedirectToAction("Index", "Home");
-            ModelState.AddModelError(string.Empty, "Geçersiz giriş bilgileri");
+
+            ModelState.AddModelError(string.Empty, "Kullanıcı kodu veya şifre hatalı");
             return View(model);
         }
-        
 
         [HttpPost]
         [ValidateAntiForgeryToken]

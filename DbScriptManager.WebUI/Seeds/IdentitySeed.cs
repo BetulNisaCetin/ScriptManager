@@ -12,19 +12,13 @@ public static class IdentitySeed
 
         string[] roles = { "Admin", "Developer" };
 
-        // 🔹 1. Roller oluştur
         foreach (var role in roles)
         {
-            var roleExists = await roleManager.RoleExistsAsync(role);
-            if (!roleExists)
-            {
+            if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
-            }
         }
 
-        // 🔹 2. Admin kullanıcı oluştur
         var adminUserName = "admin";
-        var adminEmail = "admin@test.com"; // ⚠️ bunu düzelt
         var adminPassword = "Admin123!";
 
         var adminUser = await userManager.FindByNameAsync(adminUserName);
@@ -33,18 +27,16 @@ public static class IdentitySeed
         {
             adminUser = new AppUser
             {
-                FullName = "System Admin",
-                UserName = adminUserName,
-                Email = adminEmail,
+                FirstName    = "System",   // YENİ
+                LastName     = "Admin",    // YENİ
+                UserName     = adminUserName,
                 EmailConfirmed = true,
             };
 
             var result = await userManager.CreateAsync(adminUser, adminPassword);
 
             if (result.Succeeded)
-            {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
         }
     }
 }

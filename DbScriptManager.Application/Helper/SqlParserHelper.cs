@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DbScriptManager.Application.Helpers
+namespace DbScriptManager.Application.Helper
 {
     public static class SqlParserHelper
     {

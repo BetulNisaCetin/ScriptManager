@@ -4,7 +4,7 @@ using DbScriptManager.Domain.Entities;
 using DbScriptManager.Persistence.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
-using DbScriptManager.Application.Helpers;
+using DbScriptManager.Application.Helper;
 
 namespace DbScriptManager.Application.Services
 {

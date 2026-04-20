@@ -1,5 +1,5 @@
 using DbScriptManager.Application.DTOs;
-using DbScriptManager.Application.Helpers;
+using DbScriptManager.Application.Helper;
 using DbScriptManager.Application.Interfaces;
 
 namespace DbScriptManager.Application.Services

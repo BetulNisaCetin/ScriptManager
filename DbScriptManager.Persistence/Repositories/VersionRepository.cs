@@ -18,6 +18,7 @@ public class VersionRepository : IVersionRepository
     {
         return await _context.Versions
             .Include(v => v.Scripts)
+            .ThenInclude(s => s.DatabaseConfig)
             .OrderByDescending(v => v.CreatedDate)
             .ToListAsync();
     }
@@ -26,6 +27,7 @@ public class VersionRepository : IVersionRepository
     {
         return await _context.Versions
             .Include(v => v.Scripts)
+            .ThenInclude(s => s.DatabaseConfig) 
             .FirstOrDefaultAsync(v => v.Id == id);
     }
 

@@ -20,18 +20,23 @@
         <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
 
         <form asp-action="Register" method="post">
-            <div class="form-group">
-                <label asp-for="FullName" class="form-label">Ad Soyad</label>
-                <input asp-for="FullName" class="form-control" placeholder="Adınız Soyadınız" />
-                <span asp-validation-for="FullName" class="field-validation-error"></span>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                <div class="form-group">
+                    <label asp-for="FirstName" class="form-label">Ad</label>
+                    <input asp-for="FirstName" class="form-control" placeholder="Adınız" />
+                    <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LastName" class="form-label">Soyad</label>
+                    <input asp-for="LastName" class="form-control" placeholder="Soyadınız" />
+                    <span asp-validation-for="LastName" class="field-validation-error"></span>
+                </div>
             </div>
 
-            <!-- UserName KALDIRILDI -->
-
             <div class="form-group">
-                <label asp-for="Email" class="form-label">E-posta</label>
-                <input asp-for="Email" class="form-control" placeholder="ornek@email.com" type="email" />
-                <span asp-validation-for="Email" class="field-validation-error"></span>
+                <label asp-for="UserName" class="form-label">Kullanıcı Kodu</label>
+                <input asp-for="UserName" class="form-control" placeholder="kullanici_kodu" />
+                <span asp-validation-for="UserName" class="field-validation-error"></span>
             </div>
 
             <div class="form-group">
@@ -54,8 +59,7 @@
 
         <div style="text-align:center; margin-top:1.25rem; font-size:0.8125rem; color: var(--text-muted);">
             Zaten hesabınız var mı?
-            <!-- Identity linki kaldırıldı, kendi Login sayfamıza yönlendiriyor -->
-            <a asp-controller="Account" asp-action="Login" asp-area="" style="font-weight:500;">Giriş yapın</a>
+            <a asp-controller="Account" asp-action="Login" style="font-weight:500;">Giriş yapın</a>
         </div>
     </div>
 </div>
