@@ -299,6 +299,19 @@ namespace DbScriptManager.Application.Services
         {
             await DeleteScript(id);
         }
-    }
+        public async Task ToggleExecutedAsync(int id, bool isSuccess)
+     {
+        var script = await _repository.GetByIdAsync(id);
+        if (script == null)
+            throw new Exception("Script bulunamadı");
+
+        script.IsExecuted = true;
+        script.ExecutedAt = DateTime.Now;
+        script.IsSuccess  = isSuccess;
+        script.ErrorMessage = null;
+
+        await _repository.UpdateAsync(script);
+}
+        }
         
 }

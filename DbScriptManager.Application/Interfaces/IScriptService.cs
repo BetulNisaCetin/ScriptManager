@@ -17,5 +17,6 @@ namespace DbScriptManager.Application.Interfaces
         Task <ScriptDetailDto?> GetScriptDetail(int id);
         Task ExecuteScriptAsync(int id);
         Task<List<ScriptDto>> GetFilteredScripts(ScriptFilterDto filter);
+        Task ToggleExecutedAsync(int id, bool isSuccess);
     }
 }

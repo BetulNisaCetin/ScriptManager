@@ -110,12 +110,11 @@ namespace DbScriptManager.Application.Services
             return conflicts;
         }
 
-        /// <summary>
+      
         /// İki scriptin aynı tabloyu nasıl etkilediğine göre severity belirler.
         /// Her ikisi de DDL yapıyorsa High, biri DDL biri DML ise High,
         /// ikisi de DML ise Medium.
-        /// </summary>
-        private static string DetermineTableConflictSeverity(string sqlA, string sqlB, string _)
+               private static string DetermineTableConflictSeverity(string sqlA, string sqlB, string _)
         {
             var ddlKeywords = new[] { "ALTER TABLE", "DROP TABLE", "TRUNCATE TABLE", "CREATE TABLE" };
 

@@ -183,4 +183,24 @@ public class ScriptController : Controller
 
         return RedirectToAction(nameof(Detail), new { id });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleExecuted(int id, bool isSuccess)
+    {
+        var script = await _scriptService.GetById(id);
+        if (script == null) return NotFound();
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        // Sadece kendi scripti veya admin
+        var isAdmin = User.IsInRole("Admin");
+        if (!isAdmin && script.CreatedByUserId != user.Id)
+        return Forbid();
+
+        await _scriptService.ToggleExecutedAsync(id, isSuccess);
+        TempData["SuccessMessage"] = "Script durumu güncellendi";
+        return RedirectToAction(nameof(Index));
+}
 }
